@@ -1,59 +1,75 @@
-import torch
-import torch.nn as nn
-import torchvision
-from torchvision import transforms,models
+from __future__ import division
+from torchvision import models
+from torchvision import transforms
 from PIL import Image
 import argparse
+import torch
+import torchvision
+import torch.nn as nn
 import numpy as np
-import os
-import cv2 as cv
 
 CONTENT_PATH = "./content.jpg"
 STYLE_PATH = "./style.jpg"
-LEARNING_RATE = 0.001
-TOTAL_STEP = 5000
+LEARNING_RATE = 0.01
+TOTAL_STEP = 100
 STYLE_WEIGHT = 0.5
+SPACE = 10
+
+
 
 class VGGNet(nn.Module):
     def __init__(self):
         super(VGGNet, self).__init__()
         #获取以下五个层的特征
         self.select = ['0', '5', '10', '19', '28']
-        self.vgg19 = models.vgg19(pretrained=True).features
+        self.vgg = models.vgg19(pretrained=True).features
 
     def forward(self, x):
         features = []
-        for name, layer in self.vgg19._modules.items():
-            feature = layer(x)
+        for name, layer in self.vgg._modules.items():
+            #非常重要，必须是x = layer(x)
+            x = layer(x)
             if name in self.select:
-                features.append(feature)
-
+                features.append(x)
         return features
 
 
 class Main():
     #加载图片函数
-    def loadImage(self,path,transform,shape = None):
-        image = cv.imread(path)
-        if shape != None:
-            image = cv.resize(src = image,dst = image,dsize = (shape[0],shape[1]))
-        image_transformed = transform(image).unsqueeze(0)
-        return image_transformed.cuda()
+    def loadImage(self,image_path, transform=None, max_size=None, shape=None):
+        """加载图像，并进行Resize、transform操作"""
+        image = Image.open(image_path)
 
-    def main(self):
+        if max_size:
+            scale = max_size / max(image.size)
+            size = np.array(image.size) * scale
+            image = image.resize(size.astype(int), Image.ANTIALIAS)
+
+        if shape:
+            image = image.resize(shape, Image.LANCZOS)
+
+        if transform:
+            image = transform(image).unsqueeze(0)
+
+        return image.cuda()
+
+    def mainFunc(self):
+
         #将图片转换为tensor且标准化
         transform = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
         # print(input)
-        self.content = self.loadImage(CONTENT_PATH,transform)
+        self.content = self.loadImage(CONTENT_PATH,transform,max_size = 400)
         #content的长和宽
-        shape = [self.content.size(3),self.content.size(2)]
+        shape = [self.content.size(2),self.content.size(3)]
         #使得content与style形状一致
-        self.style = self.loadImage(STYLE_PATH,transform,shape)
-        vgg = VGGNet().cuda()
-        target = self.content.clone().requires_grad_(True)
+        self.style = self.loadImage(STYLE_PATH,transform,shape = shape)
 
+        target = self.content.clone().requires_grad_(True)
+        # target = self.content.clone()
         optimizer = torch.optim.Adam([target], lr = LEARNING_RATE, betas=[0.5, 0.999])
+
+        vgg = VGGNet().cuda().eval()
         # print(target)
         for step in range(TOTAL_STEP):
             target_features = vgg(target)
@@ -76,12 +92,13 @@ class Main():
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-            if step + 1 % 1000 == 0:
+            if (step + 1) % SPACE == 0:
+                print("test")
                 denorm = transforms.Normalize((-2.12, -2.04, -1.80), (4.37, 4.46, 4.44))
                 img = target.clone().cpu().squeeze()
                 img = denorm(img.data).clamp_(0, 1)
-                torchvision.utils.save_image(img, 'output-%d.png' % (step + 1))
+                torchvision.utils.save_image(img, './output-%d.png' % (step + 1))
 
 if __name__ == "__main__":
     t = Main()
-    t.main()
+    t.mainFunc()
