@@ -11,9 +11,9 @@ import numpy as np
 CONTENT_PATH = "./content.jpg"
 STYLE_PATH = "./style.jpg"
 LEARNING_RATE = 0.01
-TOTAL_STEP = 100
+TOTAL_STEP = 1000
 STYLE_WEIGHT = 0.5
-SPACE = 10
+SPACE = 100
 
 
 
