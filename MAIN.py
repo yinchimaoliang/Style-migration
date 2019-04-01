@@ -8,8 +8,8 @@ import torchvision
 import torch.nn as nn
 import numpy as np
 
-CONTENT_PATH = "./content.jpg"
-STYLE_PATH = "./style.jpg"
+CONTENT_PATH = "./images/Lily.jpg"
+STYLE_PATH = "./images/style.jpg"
 LEARNING_RATE = 0.01
 TOTAL_STEP = 1000
 STYLE_WEIGHT = 0.5
@@ -97,7 +97,7 @@ class Main():
                 denorm = transforms.Normalize((-2.12, -2.04, -1.80), (4.37, 4.46, 4.44))
                 img = target.clone().cpu().squeeze()
                 img = denorm(img.data).clamp_(0, 1)
-                torchvision.utils.save_image(img, './output-%d.png' % (step + 1))
+                torchvision.utils.save_image(img, './results/output-%d.png' % (step + 1))
 
 if __name__ == "__main__":
     t = Main()
