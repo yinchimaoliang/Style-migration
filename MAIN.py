@@ -9,7 +9,7 @@ import torch.nn as nn
 import numpy as np
 
 CONTENT_PATH = "./images/Dorothea.jpeg"
-STYLE_PATH = "./images/style1.jpg"
+STYLE_PATH = "./images/style3.jpg"
 LEARNING_RATE = 0.01
 TOTAL_STEP = 1000
 STYLE_WEIGHT = 0.5
