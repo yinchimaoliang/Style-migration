@@ -8,8 +8,8 @@ import torchvision
 import torch.nn as nn
 import numpy as np
 
-CONTENT_PATH = "./images/Lily.jpg"
-STYLE_PATH = "./images/style.jpg"
+CONTENT_PATH = "./images/Dorothea.jpeg"
+STYLE_PATH = "./images/style1.jpg"
 LEARNING_RATE = 0.01
 TOTAL_STEP = 1000
 STYLE_WEIGHT = 0.5
@@ -59,7 +59,7 @@ class Main():
         transform = transforms.Compose(
             [transforms.ToTensor(), transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225))])
         # print(input)
-        self.content = self.loadImage(CONTENT_PATH,transform,max_size = 400)
+        self.content = self.loadImage(CONTENT_PATH,transform,max_size = 600)
         #content的长和宽
         shape = [self.content.size(2),self.content.size(3)]
         #使得content与style形状一致
